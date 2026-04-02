@@ -27,6 +27,7 @@ import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded'
 import FiberManualRecordRoundedIcon from '@mui/icons-material/FiberManualRecordRounded'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { alpha } from '@mui/material/styles'
 import BrandMark from './BrandMark'
 import AgentFab from '../agent/AgentFab'
 import { suggestedProfiles, trends } from '../../data/mockData'
@@ -226,7 +227,9 @@ function AppShell() {
           borderRadius: 4,
           border: '1px solid',
           borderColor: 'divider',
-          bgcolor: 'rgba(15, 17, 22, 0.9)',
+          bgcolor: (theme) =>
+            alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.9 : 0.96),
+          color: 'text.primary',
           transform:
             allowNavAutoHide && hideMobileNav
               ? 'translateY(130px)'

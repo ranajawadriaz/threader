@@ -89,21 +89,30 @@ function ProfilePage() {
         }}
       >
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h4" sx={{ mb: 0.5, fontSize: { xs: 44, sm: 56 }, lineHeight: 1 }}>
+          <Box sx={{ minWidth: 0, flex: 1, pr: { xs: 0.7, sm: 1.2 } }}>
+            <Typography
+              variant="h4"
+              sx={{
+                mb: 0.5,
+                fontSize: { xs: 30, sm: 56 },
+                lineHeight: { xs: 1.06, sm: 1 },
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+              }}
+            >
               {currentUser.username}
             </Typography>
             <Typography variant="h6" sx={{ mb: 0.6 }}>
               {currentUser.fullName}
             </Typography>
             <Typography color="text.secondary">{currentUser.bio}</Typography>
-            <Typography color="text.secondary" sx={{ mt: 0.8, fontSize: 44 }}>
+            <Typography color="text.secondary" sx={{ mt: 0.8, fontSize: { xs: 34, sm: 44 }, lineHeight: 1 }}>
               0 followers
             </Typography>
           </Box>
 
-          <Stack spacing={1} alignItems="flex-end">
-            <Avatar sx={{ width: 94, height: 94, bgcolor: currentUser.avatarColor }}>
+          <Stack spacing={1} alignItems="flex-end" sx={{ flexShrink: 0 }}>
+            <Avatar sx={{ width: { xs: 74, sm: 94 }, height: { xs: 74, sm: 94 }, bgcolor: currentUser.avatarColor }}>
               {currentUser.fullName.slice(0, 1)}
             </Avatar>
             <Stack direction="row" spacing={0.4}>

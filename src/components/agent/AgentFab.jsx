@@ -13,7 +13,7 @@ import {
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined'
 import { useDispatch, useSelector } from 'react-redux'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import { closeAgent, selectAgentOpen, toggleAgent } from '../../features/ui/uiSlice'
 
 const quickActions = [
@@ -48,7 +48,11 @@ function AgentFab() {
           right: 22,
           bottom: { xs: 90, md: 30 },
           zIndex: 1350,
-          boxShadow: '0 16px 28px rgba(0, 212, 184, 0.35)',
+          color: 'secondary.contrastText',
+          boxShadow: (currentTheme) =>
+            currentTheme.palette.mode === 'dark'
+              ? '0 16px 28px rgba(0, 212, 184, 0.35)'
+              : '0 14px 24px rgba(10, 143, 125, 0.28)',
         }}
       >
         <SmartToyOutlinedIcon />
@@ -64,8 +68,11 @@ function AgentFab() {
             width: { xs: '100vw', sm: 450 },
             minHeight: { xs: 420, md: '100%' },
             p: 3,
-            background:
-              'linear-gradient(170deg, rgba(7,10,15,0.98), rgba(16,22,31,0.97))',
+            color: 'text.primary',
+            background: (currentTheme) =>
+              currentTheme.palette.mode === 'dark'
+                ? 'linear-gradient(170deg, rgba(7,10,15,0.98), rgba(16,22,31,0.97))'
+                : 'linear-gradient(170deg, rgba(255,255,255,0.98), rgba(239,244,251,0.96))',
           }}
         >
           <Stack spacing={0.8}>
@@ -86,7 +93,11 @@ function AgentFab() {
                   borderRadius: 3,
                   border: '1px solid',
                   borderColor: 'divider',
-                  bgcolor: 'rgba(255, 255, 255, 0.02)',
+                  bgcolor: (currentTheme) =>
+                    alpha(
+                      currentTheme.palette.background.paper,
+                      currentTheme.palette.mode === 'dark' ? 0.2 : 0.82,
+                    ),
                 }}
               >
                 <ListItemText primary={item.title} secondary={item.subtitle} />
