@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Studio Nora key art concept</title>
+  <desc id="desc">A cyber-noir frame with neon gradients, a glowing sun, and silhouetted city blocks.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#12051f"/>
+      <stop offset="45%" stop-color="#40236b"/>
+      <stop offset="100%" stop-color="#f43f5e"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#09111f"/>
+      <stop offset="100%" stop-color="#1d3557"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="50%" cy="38%" r="28%">
+      <stop offset="0%" stop-color="#ffe082"/>
+      <stop offset="55%" stop-color="#ff7aa2"/>
+      <stop offset="100%" stop-color="#ff4d6d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="720" fill="url(#sky)"/>
+  <circle cx="650" cy="260" r="170" fill="url(#sun)"/>
+  <g opacity="0.75">
+    <rect x="120" y="390" width="140" height="220" fill="#081321"/>
+    <rect x="285" y="330" width="100" height="280" fill="#0a1727"/>
+    <rect x="410" y="280" width="170" height="330" fill="#081321"/>
+    <rect x="610" y="360" width="110" height="250" fill="#0a1727"/>
+    <rect x="750" y="300" width="150" height="310" fill="#081321"/>
+    <rect x="930" y="410" width="100" height="200" fill="#0a1727"/>
+  </g>
+  <g stroke="#7dd3fc" stroke-width="6" stroke-linecap="round" opacity="0.8">
+    <path d="M0 520 C150 470 290 560 430 515 S720 485 900 520 S1100 560 1200 515" fill="none"/>
+    <path d="M0 560 C120 525 240 610 400 575 S720 535 920 580 S1080 610 1200 565" fill="none" opacity="0.5"/>
+  </g>
+  <rect y="560" width="1200" height="160" fill="url(#ground)"/>
+  <g fill="#111827" opacity="0.9">
+    <polygon points="550,720 670,420 760,720"/>
+    <polygon points="360,720 450,500 520,720"/>
+    <polygon points="780,720 850,540 910,720"/>
+  </g>
+  <g fill="#f9fafb" font-family="Verdana, sans-serif">
+    <text x="72" y="634" font-size="32" font-weight="700">Studio Nora</text>
+    <text x="72" y="674" font-size="20" opacity="0.8">Cyber-noir key art exploration</text>
+  </g>
+</svg>

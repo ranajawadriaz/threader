@@ -3,12 +3,12 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material'
-import GoogleIcon from '@mui/icons-material/Google'
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -16,6 +16,7 @@ import {
   clearAuthError,
   login,
   selectAuthError,
+  selectAuthLoading,
   selectIsAuthenticated,
 } from '../../features/auth/authSlice'
 import BrandMark from '../../components/layout/BrandMark'
@@ -24,6 +25,7 @@ function LoginPage() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const authError = useSelector(selectAuthError)
+  const authLoading = useSelector(selectAuthLoading)
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
   const [credentials, setCredentials] = useState({
@@ -59,6 +61,11 @@ function LoginPage() {
 
   const onSubmit = (event) => {
     event.preventDefault()
+
+    if (authLoading) {
+      return
+    }
+
     dispatch(login(credentials))
   }
 
@@ -106,6 +113,7 @@ function LoginPage() {
                 onChange={onChange}
                 label="Username or email"
                 autoComplete="username"
+                disabled={authLoading}
               />
               <TextField
                 required
@@ -115,14 +123,19 @@ function LoginPage() {
                 label="Password"
                 type="password"
                 autoComplete="current-password"
+                disabled={authLoading}
               />
 
-              <Button type="submit" variant="contained" size="large" startIcon={<LoginRoundedIcon />}>
-                Log in
-              </Button>
-
-              <Button variant="outlined" size="large" startIcon={<GoogleIcon />}>
-                Continue with Google
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={authLoading}
+                startIcon={
+                  authLoading ? <CircularProgress size={18} color="inherit" /> : <LoginRoundedIcon />
+                }
+              >
+                {authLoading ? 'Logging in...' : 'Log in'}
               </Button>
             </Stack>
           </Box>
@@ -136,10 +149,6 @@ function LoginPage() {
             >
               Create account
             </Typography>
-          </Typography>
-
-          <Typography variant="caption" color="text.secondary">
-            Demo login: rana_jawad_riaz / 12345678
           </Typography>
         </Stack>
       </Paper>

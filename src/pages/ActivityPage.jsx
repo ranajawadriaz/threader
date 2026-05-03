@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Avatar,
   Box,
@@ -13,19 +13,23 @@ import {
 } from '@mui/material'
 import NotificationsOffRoundedIcon from '@mui/icons-material/NotificationsOffRounded'
 import MoreHorizRoundedIcon from '@mui/icons-material/MoreHorizRounded'
-import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded'
-import { activityItems } from '../data/mockData'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import {
+  dismissNotification,
+  fetchNotifications,
+  selectNotifications,
+} from '../features/social/socialSlice'
 
 function ActivityPage() {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   const [tab, setTab] = useState('all')
+  const items = useSelector(selectNotifications)
 
-  const filteredItems = useMemo(() => {
-    if (tab === 'all') {
-      return activityItems
-    }
-
-    return activityItems.filter((item) => item.type === tab)
-  }, [tab])
+  useEffect(() => {
+    dispatch(fetchNotifications(tab))
+  }, [dispatch, tab])
 
   return (
     <Stack spacing={1.4}>
@@ -42,7 +46,7 @@ function ActivityPage() {
           <Typography variant="h4" sx={{ fontSize: { xs: 38, sm: 52 }, lineHeight: 1 }}>
             Activity
           </Typography>
-          <NotificationsOffRoundedIcon sx={{ color: 'text.secondary' }} />
+          <NotificationsOffRoundedIcon sx={{ color: 'text.secondary', cursor: 'pointer' }} onClick={() => navigate('/settings')} />
         </Stack>
 
         <Tabs value={tab} onChange={(_, next) => setTab(next)} sx={{ mt: 1.5 }}>
@@ -52,7 +56,7 @@ function ActivityPage() {
         </Tabs>
       </Paper>
 
-      {filteredItems.map((item) => (
+      {items.map((item) => (
         <Paper
           elevation={0}
           key={item.id}
@@ -64,7 +68,7 @@ function ActivityPage() {
           }}
         >
           <Stack direction="row" spacing={1.2} alignItems="flex-start">
-            <Avatar sx={{ bgcolor: item.avatarColor, width: 40, height: 40 }}>
+            <Avatar src={item.avatarUrl} sx={{ bgcolor: item.avatarColor, width: 40, height: 40 }}>
               {item.displayName.slice(0, 1).toUpperCase()}
             </Avatar>
 
@@ -73,10 +77,9 @@ function ActivityPage() {
                 <Typography fontWeight={700}>
                   {item.displayName}
                 </Typography>
-                {item.verified ? <VerifiedRoundedIcon sx={{ fontSize: 16, color: '#1d9bf0' }} /> : null}
                 <Typography color="text.secondary">{item.time}</Typography>
                 <Box sx={{ flex: 1 }} />
-                <IconButton size="small">
+                <IconButton size="small" onClick={() => dispatch(dismissNotification(item.id))}>
                   <MoreHorizRoundedIcon fontSize="small" />
                 </IconButton>
               </Stack>
@@ -99,12 +102,12 @@ function ActivityPage() {
                 />
               ) : null}
 
-              {item.action === 'Follow suggestion' ? (
-                <Button size="small" variant="contained" sx={{ mt: 1.1 }}>
-                  Follow
+              {item.type === 'conversations' ? (
+                <Button size="small" variant="contained" sx={{ mt: 1.1 }} onClick={() => navigate('/messages')}>
+                  Open messages
                 </Button>
               ) : (
-                <Chip size="small" label="View" sx={{ mt: 1.1 }} />
+                <Chip size="small" label="View" sx={{ mt: 1.1 }} onClick={() => navigate('/home')} />
               )}
             </Box>
           </Stack>

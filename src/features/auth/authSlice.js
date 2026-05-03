@@ -1,64 +1,82 @@
-import { createSlice, nanoid } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { api } from '../../lib/api'
 
-const AUTH_STORAGE_KEY = 'threader_auth_state'
+function toErrorMessage(error, fallbackMessage) {
+  return error?.message || fallbackMessage
+}
 
-const seedUsers = [
-  {
-    id: 'u1',
-    fullName: 'Rana Jawad Riaz',
-    username: 'rana_jawad_riaz',
-    email: 'rana@threader.app',
-    password: '12345678',
-    bio: 'Building Threader in public.',
-    privateAccount: false,
-    avatarColor: '#8892a6',
+export const hydrateSession = createAsyncThunk(
+  'auth/hydrateSession',
+  async (_, thunkApi) => {
+    try {
+      const response = await api.get('/auth/me')
+      return response.user
+    } catch (error) {
+      if (error.status === 401) {
+        return thunkApi.rejectWithValue({ silent: true })
+      }
+
+      return thunkApi.rejectWithValue({
+        message: toErrorMessage(error, 'Unable to restore your session.'),
+      })
+    }
   },
-]
+)
 
-const readStoredAuth = () => {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  try {
-    const rawValue = window.localStorage.getItem(AUTH_STORAGE_KEY)
-
-    if (!rawValue) {
-      return null
+export const login = createAsyncThunk(
+  'auth/login',
+  async (credentials, thunkApi) => {
+    try {
+      const response = await api.post('/auth/login', credentials)
+      return response.user
+    } catch (error) {
+      return thunkApi.rejectWithValue({
+        message: toErrorMessage(
+          error,
+          'Incorrect credentials. Try username/email and password again.',
+        ),
+      })
     }
+  },
+)
 
-    const parsed = JSON.parse(rawValue)
-
-    if (!parsed || !Array.isArray(parsed.users)) {
-      return null
+export const register = createAsyncThunk(
+  'auth/register',
+  async (form, thunkApi) => {
+    try {
+      const response = await api.post('/auth/register', form)
+      return response.user
+    } catch (error) {
+      return thunkApi.rejectWithValue({
+        message: toErrorMessage(error, 'Unable to create your account right now.'),
+      })
     }
+  },
+)
 
-    return parsed
-  } catch {
-    return null
-  }
-}
+export const logout = createAsyncThunk('auth/logout', async () => {
+  await api.post('/auth/logout', {})
+})
 
-const persistAuth = (state) => {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  const dataToPersist = {
-    users: state.users,
-    currentUserId: state.currentUserId,
-    isAuthenticated: state.isAuthenticated,
-  }
-
-  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(dataToPersist))
-}
-
-const storedAuth = readStoredAuth()
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (payload, thunkApi) => {
+    try {
+      const response = await api.patch('/users/me', payload)
+      return response.user
+    } catch (error) {
+      return thunkApi.rejectWithValue({
+        message: toErrorMessage(error, 'Unable to update your profile right now.'),
+      })
+    }
+  },
+)
 
 const initialState = {
-  users: storedAuth?.users?.length ? storedAuth.users : seedUsers,
-  currentUserId: storedAuth?.currentUserId ?? null,
-  isAuthenticated: storedAuth?.isAuthenticated ?? false,
+  currentUser: null,
+  isAuthenticated: false,
+  isInitialized: false,
+  isLoading: false,
   error: null,
 }
 
@@ -66,115 +84,103 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    login: (state, action) => {
-      const identity = action.payload?.identity?.trim().toLowerCase()
-      const password = action.payload?.password ?? ''
-
-      const user = state.users.find(
-        (entry) =>
-          entry.username.toLowerCase() === identity ||
-          entry.email.toLowerCase() === identity,
-      )
-
-      if (!user || user.password !== password) {
-        state.error = 'Incorrect credentials. Try username/email and password again.'
-        return
-      }
-
-      state.error = null
-      state.currentUserId = user.id
-      state.isAuthenticated = true
-      persistAuth(state)
-    },
-    register: (state, action) => {
-      const fullName = action.payload?.fullName?.trim() ?? ''
-      const username = action.payload?.username?.trim() ?? ''
-      const email = action.payload?.email?.trim() ?? ''
-      const password = action.payload?.password ?? ''
-      const privateAccount = Boolean(action.payload?.privateAccount)
-
-      if (!fullName || !username || !email || !password) {
-        state.error = 'Please fill all required fields.'
-        return
-      }
-
-      const normalizedUsername = username.toLowerCase()
-      const normalizedEmail = email.toLowerCase()
-
-      const hasUsername = state.users.some(
-        (entry) => entry.username.toLowerCase() === normalizedUsername,
-      )
-      if (hasUsername) {
-        state.error = 'Username already exists. Choose another one.'
-        return
-      }
-
-      const hasEmail = state.users.some(
-        (entry) => entry.email.toLowerCase() === normalizedEmail,
-      )
-      if (hasEmail) {
-        state.error = 'Email already exists. Use another email.'
-        return
-      }
-
-      const createdUser = {
-        id: nanoid(),
-        fullName,
-        username,
-        email,
-        password,
-        privateAccount,
-        bio: 'New to Threader. Say hello.',
-        avatarColor: '#64748b',
-      }
-
-      state.users.unshift(createdUser)
-      state.currentUserId = createdUser.id
-      state.isAuthenticated = true
-      state.error = null
-      persistAuth(state)
-    },
-    logout: (state) => {
-      state.currentUserId = null
-      state.isAuthenticated = false
-      state.error = null
-      persistAuth(state)
-    },
-    updateProfile: (state, action) => {
-      const user = state.users.find((entry) => entry.id === state.currentUserId)
-
-      if (!user) {
-        return
-      }
-
-      const { fullName, bio, privateAccount } = action.payload
-
-      if (typeof fullName === 'string' && fullName.trim()) {
-        user.fullName = fullName.trim()
-      }
-
-      if (typeof bio === 'string') {
-        user.bio = bio.trim()
-      }
-
-      if (typeof privateAccount === 'boolean') {
-        user.privateAccount = privateAccount
-      }
-
-      persistAuth(state)
-    },
     clearAuthError: (state) => {
       state.error = null
     },
+    setCurrentUser: (state, action) => {
+      state.currentUser = action.payload
+      state.isAuthenticated = Boolean(action.payload)
+      state.isInitialized = true
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(hydrateSession.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(hydrateSession.fulfilled, (state, action) => {
+        state.currentUser = action.payload
+        state.isAuthenticated = true
+        state.isInitialized = true
+        state.isLoading = false
+        state.error = null
+      })
+      .addCase(hydrateSession.rejected, (state, action) => {
+        state.currentUser = null
+        state.isAuthenticated = false
+        state.isInitialized = true
+        state.isLoading = false
+        state.error = action.payload?.silent ? null : action.payload?.message || null
+      })
+      .addCase(login.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        state.currentUser = action.payload
+        state.isAuthenticated = true
+        state.isInitialized = true
+        state.isLoading = false
+        state.error = null
+      })
+      .addCase(login.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload?.message || 'Unable to log in.'
+      })
+      .addCase(register.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.currentUser = action.payload
+        state.isAuthenticated = true
+        state.isInitialized = true
+        state.isLoading = false
+        state.error = null
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload?.message || 'Unable to create your account.'
+      })
+      .addCase(logout.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(logout.fulfilled, (state) => {
+        state.currentUser = null
+        state.isAuthenticated = false
+        state.isInitialized = true
+        state.isLoading = false
+        state.error = null
+      })
+      .addCase(logout.rejected, (state) => {
+        state.currentUser = null
+        state.isAuthenticated = false
+        state.isInitialized = true
+        state.isLoading = false
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.currentUser = action.payload
+        state.isAuthenticated = true
+        state.isLoading = false
+        state.error = null
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload?.message || 'Unable to update your profile.'
+      })
   },
 })
 
-export const { login, register, logout, updateProfile, clearAuthError } =
-  authSlice.actions
+export const { clearAuthError, setCurrentUser } = authSlice.actions
 
 export const selectAuthError = (state) => state.auth.error
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated
-export const selectCurrentUser = (state) =>
-  state.auth.users.find((entry) => entry.id === state.auth.currentUserId) ?? null
+export const selectAuthInitialized = (state) => state.auth.isInitialized
+export const selectAuthLoading = (state) => state.auth.isLoading
+export const selectCurrentUser = (state) => state.auth.currentUser
 
 export default authSlice.reducer

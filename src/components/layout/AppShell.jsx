@@ -8,7 +8,6 @@ import {
   Button,
   Divider,
   Fab,
-  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -24,13 +23,17 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded'
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded'
-import FiberManualRecordRoundedIcon from '@mui/icons-material/FiberManualRecordRounded'
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
+import { useDispatch, useSelector } from 'react-redux'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { alpha } from '@mui/material/styles'
 import BrandMark from './BrandMark'
 import AgentFab from '../agent/AgentFab'
-import { suggestedProfiles, trends } from '../../data/mockData'
+import {
+  fetchSidebar,
+  selectSidebarSuggestions,
+  selectSidebarTrends,
+  toggleFollow,
+} from '../../features/social/socialSlice'
 
 const navItems = [
   { label: 'Home', path: '/home', icon: <HomeRoundedIcon /> },
@@ -40,7 +43,11 @@ const navItems = [
   { label: 'Profile', path: '/profile', icon: <PersonRoundedIcon /> },
 ]
 
-function RightPanel() {
+function RightPanel({ onOpenProfile }) {
+  const dispatch = useDispatch()
+  const trends = useSelector(selectSidebarTrends)
+  const suggestedProfiles = useSelector(selectSidebarSuggestions)
+
   return (
     <Stack spacing={2.2} sx={{ position: 'sticky', top: 20 }}>
       <Paper
@@ -76,19 +83,31 @@ function RightPanel() {
           {suggestedProfiles.map((profile) => (
             <ListItem key={profile.id} disablePadding sx={{ mb: 1.2 }}>
               <Stack direction="row" spacing={1.2} alignItems="center" sx={{ width: '100%' }}>
-                <Avatar sx={{ bgcolor: profile.color, width: 34, height: 34 }}>
-                  {profile.name.slice(0, 1).toUpperCase()}
-                </Avatar>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography noWrap fontWeight={700} fontSize={14}>
-                    {profile.name}
-                  </Typography>
-                  <Typography noWrap variant="caption" color="text.secondary">
-                    {profile.handle}
-                  </Typography>
-                </Box>
-                <Button size="small" variant="outlined">
-                  Follow
+                <Stack
+                  direction="row"
+                  spacing={1.2}
+                  alignItems="center"
+                  sx={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+                  onClick={() => onOpenProfile(profile.handle.replace(/^@/, ''))}
+                >
+                  <Avatar src={profile.avatarUrl} sx={{ bgcolor: profile.color, width: 34, height: 34 }}>
+                    {profile.name.slice(0, 1).toUpperCase()}
+                  </Avatar>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography noWrap fontWeight={700} fontSize={14}>
+                      {profile.name}
+                    </Typography>
+                    <Typography noWrap variant="caption" color="text.secondary">
+                      {profile.handle}
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Button
+                  size="small"
+                  variant={profile.isFollowing ? 'contained' : 'outlined'}
+                  onClick={() => dispatch(toggleFollow(profile.id))}
+                >
+                  {profile.isFollowing ? 'Following' : 'Follow'}
                 </Button>
               </Stack>
             </ListItem>
@@ -100,10 +119,15 @@ function RightPanel() {
 }
 
 function AppShell() {
+  const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
   const [hideMobileNav, setHideMobileNav] = useState(false)
   const allowNavAutoHide = location.pathname === '/home'
+
+  useEffect(() => {
+    dispatch(fetchSidebar())
+  }, [dispatch])
 
   const navigateTo = (path) => {
     setHideMobileNav(false)
@@ -127,7 +151,10 @@ function AppShell() {
   }, [])
 
   const navValue = useMemo(() => {
-    const matching = navItems.find((item) => item.path === location.pathname)
+    const matching = navItems.find(
+      (item) =>
+        item.path === location.pathname || location.pathname.startsWith(`${item.path}/`),
+    )
     return matching ? matching.path : false
   }, [location.pathname])
 
@@ -164,7 +191,8 @@ function AppShell() {
           <Divider sx={{ my: 1.2 }} />
           <List disablePadding>
             {navItems.map((item) => {
-              const active = location.pathname === item.path
+              const active =
+                location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
               return (
                 <ListItem key={item.path} disablePadding>
                   <ListItemButton
@@ -191,8 +219,26 @@ function AppShell() {
             })}
           </List>
 
-          <Box sx={{ mt: 'auto', p: 1.2, border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-            <Typography variant="body2" color="text.secondary">
+          <Box
+            sx={{
+              mt: 'auto',
+              p: 1.2,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              minWidth: 0,
+              overflow: 'hidden',
+            }}
+          >
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                lineHeight: 1.45,
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+              }}
+            >
               Use the AI button to draft posts, summarize threads, and automate routine actions.
             </Typography>
           </Box>
@@ -204,7 +250,7 @@ function AppShell() {
             flex: 1,
             minWidth: 0,
             maxWidth: { xs: '100%', lg: 760 },
-            pb: { xs: 11, md: 3 },
+            pb: { xs: 12.5, md: 3 },
             pt: { xs: 1, sm: 1.4, md: 2 },
           }}
         >
@@ -212,7 +258,7 @@ function AppShell() {
         </Box>
 
         <Box component="aside" sx={{ display: { xs: 'none', lg: 'block' }, width: 330, pt: 2 }}>
-          <RightPanel />
+          <RightPanel onOpenProfile={(username) => navigateTo(`/profile/${username}`)} />
         </Box>
       </Box>
 
@@ -220,8 +266,8 @@ function AppShell() {
         elevation={8}
         sx={{
           position: 'fixed',
-          left: 10,
-          right: 10,
+          left: { xs: 8, sm: 10 },
+          right: { xs: 8, sm: 10 },
           bottom: 8,
           display: { xs: 'block', md: 'none' },
           borderRadius: 4,
@@ -243,7 +289,31 @@ function AppShell() {
           value={navValue}
           showLabels
           onChange={(_, next) => navigateTo(next)}
-          sx={{ bgcolor: 'transparent' }}
+          sx={{
+            bgcolor: 'transparent',
+            minHeight: { xs: 66, sm: 70 },
+            px: { xs: 0.25, sm: 0.5 },
+            pl: 'calc(env(safe-area-inset-left, 0px) + 2px)',
+            pr: 'calc(env(safe-area-inset-right, 0px) + 2px)',
+            '& .MuiBottomNavigationAction-root': {
+              minWidth: 0,
+              maxWidth: 'none',
+              flex: '1 1 20%',
+              px: { xs: 0.15, sm: 0.4 },
+              py: 0.75,
+            },
+            '& .MuiBottomNavigationAction-label': {
+              fontSize: { xs: '0.65rem', sm: '0.72rem' },
+              lineHeight: 1.1,
+              mt: 0.3,
+              '&.Mui-selected': {
+                fontSize: { xs: '0.65rem', sm: '0.72rem' },
+              },
+            },
+            '& .MuiSvgIcon-root': {
+              fontSize: { xs: '1.38rem', sm: '1.5rem' },
+            },
+          }}
         >
           {navItems.map((item) => (
             <BottomNavigationAction

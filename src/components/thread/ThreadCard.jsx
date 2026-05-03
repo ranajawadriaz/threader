@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Avatar,
   Box,
@@ -44,8 +45,14 @@ function ThreadCard({
   onComment,
   onRepost,
   onShare,
+  onDelete,
+  onOpenAuthor,
 }) {
+  const [hasImageError, setHasImageError] = useState(false)
   const isLiked = post.likes.includes(currentUserId)
+  const canDelete = typeof onDelete === 'function' && currentUserId === post.authorId
+  const onMenuClick = canDelete ? onDelete : onShare
+  const canOpenAuthor = typeof onOpenAuthor === 'function'
 
   return (
     <Paper
@@ -58,23 +65,48 @@ function ThreadCard({
       }}
     >
       <Stack direction="row" spacing={1.5} alignItems="flex-start">
-        <Avatar sx={{ bgcolor: post.avatarColor, width: 42, height: 42 }}>
+        <Avatar
+          src={post.avatarUrl}
+          onClick={canOpenAuthor ? onOpenAuthor : undefined}
+          sx={{
+            bgcolor: post.avatarColor,
+            width: 42,
+            height: 42,
+            cursor: canOpenAuthor ? 'pointer' : 'default',
+          }}
+        >
           {post.author.slice(0, 1).toUpperCase()}
         </Avatar>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography fontWeight={700} noWrap>
-              {post.author}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" noWrap>
-              @{post.username}
-            </Typography>
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              onClick={canOpenAuthor ? onOpenAuthor : undefined}
+              sx={{
+                minWidth: 0,
+                cursor: canOpenAuthor ? 'pointer' : 'default',
+                '&:hover .thread-author-link': canOpenAuthor
+                  ? {
+                      color: 'secondary.main',
+                    }
+                  : undefined,
+              }}
+            >
+              <Typography className="thread-author-link" fontWeight={700} noWrap>
+                {post.author}
+              </Typography>
+              <Typography className="thread-author-link" variant="body2" color="text.secondary" noWrap>
+                @{post.username}
+              </Typography>
+            </Stack>
             <Typography variant="body2" color="text.secondary">
               {post.createdAt}
             </Typography>
             <Box sx={{ flex: 1 }} />
-            <IconButton size="small">
+            <IconButton size="small" onClick={onMenuClick}>
               <MoreHorizRoundedIcon fontSize="small" />
             </IconButton>
           </Stack>
@@ -91,11 +123,12 @@ function ThreadCard({
             {post.content}
           </Typography>
 
-          {post.image ? (
+          {post.image && !hasImageError ? (
             <Box
               component="img"
               src={post.image}
               alt={`${post.author} thread visual`}
+              onError={() => setHasImageError(true)}
               sx={{
                 mt: 1.5,
                 width: '100%',
@@ -106,6 +139,34 @@ function ThreadCard({
                 borderColor: 'divider',
               }}
             />
+          ) : post.image ? (
+            <Box
+              sx={{
+                mt: 1.5,
+                px: 1.4,
+                py: 1.2,
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'action.hover',
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                This visual could not be loaded.
+              </Typography>
+            </Box>
+          ) : null}
+
+          {post.link ? (
+            <Typography
+              component="a"
+              href={post.link}
+              target="_blank"
+              rel="noreferrer"
+              sx={{ mt: 1.2, display: 'inline-block', color: 'secondary.main', textDecoration: 'none' }}
+            >
+              {post.link}
+            </Typography>
           ) : null}
 
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1.25 }}>

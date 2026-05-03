@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Florenaux scene concept</title>
+  <desc id="desc">A luminous desert-like 3D scene with layered light, particles, and a dramatic horizon.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#130f40"/>
+      <stop offset="55%" stop-color="#1f5eff"/>
+      <stop offset="100%" stop-color="#ffd166"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="35%" r="35%">
+      <stop offset="0%" stop-color="#fff4b8"/>
+      <stop offset="40%" stop-color="#ffd166"/>
+      <stop offset="100%" stop-color="#ffd166" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <circle cx="620" cy="240" r="210" fill="url(#glow)"/>
+  <g fill="#fef3c7" opacity="0.45">
+    <circle cx="180" cy="180" r="6"/>
+    <circle cx="240" cy="120" r="4"/>
+    <circle cx="420" cy="200" r="5"/>
+    <circle cx="790" cy="140" r="5"/>
+    <circle cx="920" cy="240" r="7"/>
+    <circle cx="1020" cy="180" r="4"/>
+  </g>
+  <g fill="#f8fafc" opacity="0.75">
+    <polygon points="0,540 240,390 470,520 690,360 930,490 1200,350 1200,720 0,720"/>
+  </g>
+  <g fill="#eab308" opacity="0.22">
+    <polygon points="0,585 210,470 420,600 690,430 980,590 1200,470 1200,720 0,720"/>
+  </g>
+  <g fill="#111827" opacity="0.88">
+    <polygon points="540,720 615,300 690,720"/>
+    <polygon points="295,720 345,455 395,720"/>
+    <polygon points="810,720 855,475 900,720"/>
+  </g>
+  <g fill="#ffffff" font-family="Verdana, sans-serif">
+    <text x="72" y="636" font-size="32" font-weight="700">Florenaux</text>
+    <text x="72" y="676" font-size="20" opacity="0.8">Layered light and particle study</text>
+  </g>
+</svg>

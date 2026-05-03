@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { Box, CircularProgress } from '@mui/material'
 import AppShell from './components/layout/AppShell'
 import HomePage from './pages/HomePage'
 import MessagesPage from './pages/MessagesPage'
@@ -10,10 +11,32 @@ import SettingsPage from './pages/SettingsPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import NotFoundPage from './pages/NotFoundPage'
-import { selectIsAuthenticated } from './features/auth/authSlice'
+import {
+  selectAuthInitialized,
+  selectIsAuthenticated,
+} from './features/auth/authSlice'
+
+function AuthSplash() {
+  return (
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'grid',
+        placeItems: 'center',
+      }}
+    >
+      <CircularProgress color="secondary" />
+    </Box>
+  )
+}
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useSelector(selectIsAuthenticated)
+  const isInitialized = useSelector(selectAuthInitialized)
+
+  if (!isInitialized) {
+    return <AuthSplash />
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -24,6 +47,11 @@ function ProtectedRoute({ children }) {
 
 function GuestRoute({ children }) {
   const isAuthenticated = useSelector(selectIsAuthenticated)
+  const isInitialized = useSelector(selectAuthInitialized)
+
+  if (!isInitialized) {
+    return <AuthSplash />
+  }
 
   if (isAuthenticated) {
     return <Navigate to="/home" replace />
@@ -34,6 +62,11 @@ function GuestRoute({ children }) {
 
 function App() {
   const isAuthenticated = useSelector(selectIsAuthenticated)
+  const isInitialized = useSelector(selectAuthInitialized)
+
+  if (!isInitialized) {
+    return <AuthSplash />
+  }
 
   return (
     <Routes>
@@ -68,6 +101,7 @@ function App() {
         <Route path="create" element={<CreateThreadPage />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="profile/:username" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 

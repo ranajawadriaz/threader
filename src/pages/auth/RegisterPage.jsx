@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   FormControlLabel,
   Paper,
   Stack,
@@ -17,6 +18,7 @@ import {
   clearAuthError,
   register,
   selectAuthError,
+  selectAuthLoading,
   selectIsAuthenticated,
 } from '../../features/auth/authSlice'
 import BrandMark from '../../components/layout/BrandMark'
@@ -25,6 +27,7 @@ function RegisterPage() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const authError = useSelector(selectAuthError)
+  const authLoading = useSelector(selectAuthLoading)
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
   const [form, setForm] = useState({
@@ -70,6 +73,11 @@ function RegisterPage() {
 
   const onSubmit = (event) => {
     event.preventDefault()
+
+    if (authLoading) {
+      return
+    }
+
     dispatch(register(form))
   }
 
@@ -116,6 +124,7 @@ function RegisterPage() {
                 value={form.fullName}
                 onChange={onTextChange}
                 label="Full name"
+                disabled={authLoading}
               />
               <TextField
                 required
@@ -123,6 +132,7 @@ function RegisterPage() {
                 value={form.username}
                 onChange={onTextChange}
                 label="Username"
+                disabled={authLoading}
               />
               <TextField
                 required
@@ -131,6 +141,7 @@ function RegisterPage() {
                 onChange={onTextChange}
                 label="Email"
                 type="email"
+                disabled={authLoading}
               />
               <TextField
                 required
@@ -139,6 +150,7 @@ function RegisterPage() {
                 onChange={onTextChange}
                 label="Password"
                 type="password"
+                disabled={authLoading}
               />
 
               <FormControlLabel
@@ -147,6 +159,7 @@ function RegisterPage() {
                     checked={form.privateAccount}
                     onChange={onPrivacyChange}
                     color="secondary"
+                    disabled={authLoading}
                   />
                 }
                 label="Private account"
@@ -156,9 +169,16 @@ function RegisterPage() {
                 type="submit"
                 variant="contained"
                 size="large"
-                startIcon={<PersonAddRoundedIcon />}
+                disabled={authLoading}
+                startIcon={
+                  authLoading ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : (
+                    <PersonAddRoundedIcon />
+                  )
+                }
               >
-                Register
+                {authLoading ? 'Creating account...' : 'Register'}
               </Button>
             </Stack>
           </Box>

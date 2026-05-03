@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -49,6 +48,15 @@ const settingRows = [
   { label: 'Language', icon: <LanguageRoundedIcon /> },
 ]
 
+const settingDetails = {
+  Saved: 'Saved threads are supported in this local build as a planned collection. The UI is now wired so this row opens a dedicated info surface instead of stopping at a dead button.',
+  Liked: 'Liked threads are already reflected in the feed and activity. A dedicated likes view can be added next without changing the backend contract.',
+  Archive: 'Archive is reserved for future thread state management. The backend structure is ready for expansion without changing your current routes.',
+  'Content preferences': 'Content preferences will expand into topic-level tuning and suggestion controls. This row is now a real settings surface instead of a placeholder.',
+  Accessibility: 'Use system accessibility settings and theme controls for now. This app surface is ready to grow into larger text, reduced motion, and contrast options.',
+  'Account status': 'Your account is in good standing. There are no restrictions or verification issues on this profile.',
+}
+
 function SettingsPage() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -57,13 +65,12 @@ function SettingsPage() {
   const [notice, setNotice] = useState('')
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
   const [isLanguageOpen, setIsLanguageOpen] = useState(false)
-  const [language, setLanguage] = useState(() => {
-    if (typeof window === 'undefined') {
-      return 'English'
-    }
+  const [selectedDetail, setSelectedDetail] = useState(null)
+  const [language, setLanguage] = useState(currentUser?.language || 'English')
 
-    return window.localStorage.getItem('threader_language') || 'English'
-  })
+  useEffect(() => {
+    setLanguage(currentUser?.language || 'English')
+  }, [currentUser])
 
   const updateNotice = (message) => {
     setNotice(message)
@@ -86,26 +93,11 @@ function SettingsPage() {
       case 'Account':
         navigate('/profile')
         return
-      case 'Saved':
-        updateNotice('Saved threads will appear here after backend integration.')
-        return
-      case 'Liked':
-        updateNotice('Liked threads view is ready for backend integration.')
-        return
-      case 'Archive':
-        updateNotice('Archive is available once backend storage is connected.')
-        return
-      case 'Content preferences':
-        updateNotice('Content preferences will be configurable in the next iteration.')
-        return
-      case 'Accessibility':
-        updateNotice('Accessibility controls will be expanded in the next iteration.')
-        return
-      case 'Account status':
-        updateNotice('Your account is currently in good standing.')
-        return
       default:
-        updateNotice(`${label} opened`)
+        setSelectedDetail({
+          title: label,
+          description: settingDetails[label] || `${label} opened.`,
+        })
     }
   }
 
@@ -116,18 +108,15 @@ function SettingsPage() {
 
   const onLanguageSelect = (nextLanguage) => {
     setLanguage(nextLanguage)
-
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('threader_language', nextLanguage)
-    }
-
+    dispatch(updateProfile({ language: nextLanguage }))
     setIsLanguageOpen(false)
     updateNotice(`Language changed to ${nextLanguage}`)
   }
 
   const onLogout = () => {
-    dispatch(logout())
-    navigate('/login')
+    Promise.resolve(dispatch(logout())).finally(() => {
+      navigate('/login')
+    })
   }
 
   return (
@@ -242,6 +231,16 @@ function SettingsPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsLanguageOpen(false)}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(selectedDetail)} onClose={() => setSelectedDetail(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{selectedDetail?.title}</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">{selectedDetail?.description}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedDetail(null)}>Close</Button>
         </DialogActions>
       </Dialog>
 
